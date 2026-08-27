@@ -106,13 +106,13 @@ app.use(cookieParser());
 // ===============================
 
 // Allow requests only from
-// http://localhost:3000
+// https://chat-application-frontend-7art.onrender.com
 //
 // credentials:true allows cookies,
 // authorization headers, etc.
 const corsOption = {
 
-    origin: "http://localhost:3000",
+    origin: "https://chat-application-frontend-7art.onrender.com",
 
     credentials: true
 

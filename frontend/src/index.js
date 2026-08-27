@@ -26,7 +26,7 @@ const persistor = persistStore(store);
 // Production:
 // Render backend URL
 
-export const BASE_URL = "https://chat-application-pbxx.onrender.com";
+export const BASE_URL="https://chat-application-pbxx.onrender.com";
 
 
 // ======================================================
