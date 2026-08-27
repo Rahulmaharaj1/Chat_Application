@@ -1,25 +1,99 @@
 import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { setMessages } from "../redux/messageSlice";
+
+import {
+    useSelector,
+    useDispatch
+} from "react-redux";
+
+import {
+    setMessages
+} from "../redux/messageSlice";
+
+
+// ======================================================
+// REAL TIME MESSAGE
+// ======================================================
 
 const useGetRealTimeMessage = () => {
-    const { socket } = useSelector(store => store.socket);
-    const { messages } = useSelector(store => store.message);
+
+    const {
+        socket
+    } = useSelector(
+        store => store.socket
+    );
+
+
+    const {
+        messages
+    } = useSelector(
+        store => store.message
+    );
+
+
     const dispatch = useDispatch();
 
+
     useEffect(() => {
-        if (!socket) return;
+
+        // Socket available nahi hai
+        if (!socket) {
+
+            return;
+
+        }
+
+
+        // ==================================================
+        // NEW MESSAGE
+        // ==================================================
 
         const handleNewMessage = (newMessage) => {
-            dispatch(setMessages([...(messages || []), newMessage]));
+
+            dispatch(
+
+                setMessages(
+
+                    [
+                        ...(messages || []),
+                        newMessage
+                    ]
+
+                )
+
+            );
+
         };
 
-        socket.on("newMessage", handleNewMessage);
+
+        // Listen for new message
+
+        socket.on(
+            "newMessage",
+            handleNewMessage
+        );
+
+
+        // ==================================================
+        // CLEANUP
+        // ==================================================
 
         return () => {
-            socket.off("newMessage", handleNewMessage);
+
+            socket.off(
+                "newMessage",
+                handleNewMessage
+            );
+
         };
-    }, [socket, messages, dispatch]);
+
+
+    }, [
+        socket,
+        messages,
+        dispatch
+    ]);
+
 };
+
 
 export default useGetRealTimeMessage;
