@@ -2,10 +2,6 @@
 // Import React and useState Hook
 // ======================================================
 
-// React -> Used to create React components.
-//
-// useState() -> Used to store the message
-// currently typed by the user.
 import React, { useState } from "react";
 
 
@@ -13,7 +9,6 @@ import React, { useState } from "react";
 // Import Send Icon
 // ======================================================
 
-// IoSend is the send button icon.
 import { IoSend } from "react-icons/io5";
 
 
@@ -21,8 +16,6 @@ import { IoSend } from "react-icons/io5";
 // Import Axios
 // ======================================================
 
-// Axios is used to send HTTP requests
-// to the backend server.
 import axios from "axios";
 
 
@@ -30,30 +23,25 @@ import axios from "axios";
 // Import Redux Hooks
 // ======================================================
 
-// useDispatch() -> Used to update Redux Store.
-//
-// useSelector() -> Used to read data
-// from Redux Store.
-import { useDispatch, useSelector } from "react-redux";
+import {
+    useDispatch,
+    useSelector
+} from "react-redux";
 
 
 // ======================================================
 // Import Redux Action
 // ======================================================
 
-// setMessages() updates the messages
-// array inside Redux Store.
-import { setMessages } from "../redux/messageSlice";
+import {
+    addMessageIfNotExists
+} from "../redux/messageSlice";
 
 
 // ======================================================
 // Import Backend Base URL
 // ======================================================
 
-// BASE_URL contains backend server URL.
-//
-// Example:
-// http://localhost:8080
 import { BASE_URL } from "..";
 
 
@@ -67,8 +55,6 @@ const SendInput = () => {
     // Local State
     // ==================================================
 
-    // Stores the message currently typed
-    // inside the input field.
     const [message, setMessage] = useState("");
 
 
@@ -76,24 +62,22 @@ const SendInput = () => {
     // Redux
     // ==================================================
 
-    // Used to dispatch Redux actions.
     const dispatch = useDispatch();
 
 
-    // Get currently selected user.
-    const { selectedUser } = useSelector(
+    // ==================================================
+    // Selected User
+    // ==================================================
+
+    const {
+        selectedUser
+    } = useSelector(
         store => store.user
     );
 
 
-    // Get all messages from Redux.
-    const { messages } = useSelector(
-        store => store.message
-    );
-
-
     // ==================================================
-    // Send Message Function
+    // SEND MESSAGE
     // ==================================================
 
     const onSubmitHandler = async (e) => {
@@ -101,24 +85,36 @@ const SendInput = () => {
         // Prevent page refresh.
         e.preventDefault();
 
+
+        // Empty message send na ho.
+        if (!message.trim()) {
+
+            return;
+
+        }
+
+
+        // Selected user nahi hai
+        // to message send nahi karna.
+        if (!selectedUser?._id) {
+
+            return;
+
+        }
+
+
         try {
 
-            // Send POST request to backend.
-            //
-            // URL Example:
-            // /api/v1/message/send/USER_ID
-            //
-            // Request Body:
-            // {
-            //     message:"Hello"
-            // }
+            // ==================================================
+            // SEND MESSAGE TO BACKEND
+            // ==================================================
 
             const res = await axios.post(
 
-                `${BASE_URL}/api/v1/message/send/${selectedUser?._id}`,
+                `${BASE_URL}/api/v1/message/send/${selectedUser._id}`,
 
                 {
-                    message
+                    message: message.trim()
                 },
 
                 {
@@ -126,54 +122,63 @@ const SendInput = () => {
                         "Content-Type": "application/json"
                     },
 
-                    // Send cookies (JWT token)
-                    // with request.
+                    // JWT cookie send karega.
                     withCredentials: true
+
                 }
 
             );
 
 
             // ==================================================
-            // Update Redux Messages
+            // GET NEW MESSAGE
             // ==================================================
 
-            // Add newly sent message
-            // to existing messages array.
-            dispatch(
+            const newMessage =
+                res?.data?.newMessage;
 
-                setMessages([
 
-                    ...messages,
+            // ==================================================
+            // UPDATE REDUX IMMEDIATELY
+            // ==================================================
 
-                    res?.data?.newMessage
+            if (newMessage) {
 
-                ])
+                dispatch(
 
-            );
+                    addMessageIfNotExists(
+                        newMessage
+                    )
+
+                );
+
+            }
+
+
+            // ==================================================
+            // CLEAR INPUT
+            // ==================================================
+
+            setMessage("");
+
 
         }
 
         catch (error) {
 
-            console.log(error);
+            console.log(
+                "Send message error:",
+                error
+            );
 
         }
-
-
-        // ==================================================
-        // Clear Input Box
-        // ==================================================
-
-        setMessage("");
 
     };
 
 
-
-    // ==================================================
+    // ======================================================
     // JSX
-    // ==================================================
+    // ======================================================
 
     return (
 
@@ -187,6 +192,7 @@ const SendInput = () => {
 
             <div className="w-full relative">
 
+
                 {/* ============================
                     Message Input
                 ============================= */}
@@ -197,7 +203,9 @@ const SendInput = () => {
 
                     onChange={(e) =>
 
-                        setMessage(e.target.value)
+                        setMessage(
+                            e.target.value
+                        )
 
                     }
 
@@ -205,7 +213,17 @@ const SendInput = () => {
 
                     placeholder="Send a message..."
 
-                    className="border text-sm rounded-lg block w-full p-3 border-zinc-500 bg-gray-600 text-white"
+                    className="
+                        border
+                        text-sm
+                        rounded-lg
+                        block
+                        w-full
+                        p-3
+                        border-zinc-500
+                        bg-gray-600
+                        text-white
+                    "
 
                 />
 
@@ -218,13 +236,21 @@ const SendInput = () => {
 
                     type="submit"
 
-                    className="absolute flex inset-y-0 end-0 items-center pr-4"
+                    className="
+                        absolute
+                        flex
+                        inset-y-0
+                        end-0
+                        items-center
+                        pr-4
+                    "
 
                 >
 
                     <IoSend />
 
                 </button>
+
 
             </div>
 
@@ -239,4 +265,4 @@ const SendInput = () => {
 // Export Component
 // ======================================================
 
-export default SendInput; 
+export default SendInput;

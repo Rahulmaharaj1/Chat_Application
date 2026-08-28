@@ -4,7 +4,8 @@ import "./App.css";
 
 import {
     createBrowserRouter,
-    RouterProvider
+    RouterProvider,
+    Navigate
 } from "react-router-dom";
 
 import HomePage from "./components/HomePage";
@@ -36,17 +37,70 @@ import {
 
 
 // ======================================================
+// PROTECTED ROUTE
+// ======================================================
+
+// Ye check karega ki user login hai ya nahi.
+//
+// Agar authUser hai:
+//     HomePage open hoga.
+//
+// Agar authUser nahi hai:
+//     User ko /login par bhej diya jayega.
+
+const ProtectedRoute = ({ children }) => {
+
+    const {
+        authUser
+    } = useSelector(
+        store => store.user
+    );
+
+
+    // User login nahi hai
+    if (!authUser) {
+
+        return (
+            <Navigate
+                to="/login"
+                replace
+            />
+        );
+
+    }
+
+
+    // User login hai
+    return children;
+
+};
+
+
+// ======================================================
 // ROUTES
 // ======================================================
 
 const router = createBrowserRouter([
 
+    // ==================================================
+    // HOME PAGE
+    // ==================================================
+
     {
         path: "/",
 
-        element: <HomePage />
+        element: (
+            <ProtectedRoute>
+                <HomePage />
+            </ProtectedRoute>
+        )
 
     },
+
+
+    // ==================================================
+    // SIGNUP
+    // ==================================================
 
     {
         path: "/signup",
@@ -55,10 +109,32 @@ const router = createBrowserRouter([
 
     },
 
+
+    // ==================================================
+    // LOGIN
+    // ==================================================
+
     {
         path: "/login",
 
         element: <Login />
+
+    },
+
+
+    // ==================================================
+    // INVALID URL
+    // ==================================================
+
+    {
+        path: "*",
+
+        element: (
+            <Navigate
+                to="/"
+                replace
+            />
+        )
 
     }
 
@@ -96,7 +172,9 @@ function App() {
     useEffect(() => {
 
 
-        // User logged in
+        // ==============================================
+        // USER LOGGED IN
+        // ==============================================
 
         if (authUser) {
 
@@ -120,16 +198,16 @@ function App() {
             );
 
 
-            // Save socket
+            // Save socket in Redux
 
             dispatch(
                 setSocket(socketio)
             );
 
 
-            // ==================================================
+            // ==============================================
             // ONLINE USERS
-            // ==================================================
+            // ==============================================
 
             socketio.on(
 
@@ -150,9 +228,9 @@ function App() {
             );
 
 
-            // ==================================================
+            // ==============================================
             // CLEANUP
-            // ==================================================
+            // ==============================================
 
             return () => {
 
@@ -172,6 +250,7 @@ function App() {
 
             if (socket) {
 
+
                 socket.close();
 
 
@@ -189,9 +268,9 @@ function App() {
     ]);
 
 
-    // ==================================================
+    // ======================================================
     // UI
-    // ==================================================
+    // ======================================================
 
     return (
 

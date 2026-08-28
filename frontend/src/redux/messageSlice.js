@@ -2,12 +2,6 @@
 // Import createSlice from Redux Toolkit
 // ======================================================
 
-// createSlice() is used to create:
-// 1. Initial State
-// 2. Reducers
-// 3. Actions
-//
-// All in a single place.
 import { createSlice } from "@reduxjs/toolkit";
 
 
@@ -15,16 +9,8 @@ import { createSlice } from "@reduxjs/toolkit";
 // Create Message Slice
 // ======================================================
 
-// A slice represents one portion of the Redux store.
-//
-// This slice manages all message-related data.
 const messageSlice = createSlice({
 
-    // Unique name of the slice.
-    // Action types will be prefixed with "message/".
-    //
-    // Example:
-    // message/setMessages
     name: "message",
 
 
@@ -32,14 +18,10 @@ const messageSlice = createSlice({
     // Initial State
     // ==================================================
 
-    // Default state when the application starts.
     initialState: {
 
-        // Stores chat messages.
-        //
-        // Initially no messages are loaded,
-        // so value is null.
-        messages: null,
+        // Chat messages
+        messages: null
 
     },
 
@@ -48,29 +30,80 @@ const messageSlice = createSlice({
     // Reducers
     // ==================================================
 
-    // Reducers modify the Redux state.
     reducers: {
 
-        // ----------------------------------------------
-        // setMessages Reducer
-        // ----------------------------------------------
 
-        // Receives:
-        //
-        // state  -> Current Redux state
-        //
-        // action -> Contains payload
-        //
-        // Example:
-        //
-        // dispatch(setMessages(data))
-        //
-        // action.payload = data
+        // ==================================================
+        // SET MESSAGES
+        // ==================================================
+
+        // Existing messages ko Redux mein set karta hai.
         setMessages: (state, action) => {
 
-            // Update messages state
-            // with the new data.
             state.messages = action.payload;
+
+        },
+
+
+        // ==================================================
+        // ADD MESSAGE IF NOT EXISTS
+        // ==================================================
+
+        // Socket.IO se new message receive hone par
+        // ye reducer message ko Redux mein add karta hai.
+        //
+        // Agar same _id already messages mein hai,
+        // to duplicate message add nahi hoga.
+
+        addMessageIfNotExists: (state, action) => {
+
+            const newMessage = action.payload;
+
+
+            // Agar message valid nahi hai
+            if (!newMessage || !newMessage._id) {
+
+                return;
+
+            }
+
+
+            // Agar messages null hain
+            if (!state.messages) {
+
+                state.messages = [newMessage];
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // DUPLICATE CHECK
+            // ==================================================
+
+            const alreadyExists = state.messages.some(
+
+                message =>
+                    String(message._id) ===
+                    String(newMessage._id)
+
+            );
+
+
+            // Same message already exist karta hai
+            if (alreadyExists) {
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // ADD NEW MESSAGE
+            // ==================================================
+
+            state.messages.push(newMessage);
 
         }
 
@@ -83,18 +116,17 @@ const messageSlice = createSlice({
 // Export Actions
 // ======================================================
 
-// Export action creator.
-//
-// Usage:
-//
-// dispatch(setMessages(messages))
-export const { setMessages } = messageSlice.actions;
+export const {
+
+    setMessages,
+
+    addMessageIfNotExists
+
+} = messageSlice.actions;
 
 
 // ======================================================
 // Export Reducer
 // ======================================================
 
-// Export reducer so it can be added
-// to configureStore().
 export default messageSlice.reducer;

@@ -1,12 +1,26 @@
+// ======================================================
+// Import React Hook
+// ======================================================
+
 import { useEffect } from "react";
+
+
+// ======================================================
+// Import Redux
+// ======================================================
 
 import {
     useSelector,
     useDispatch
 } from "react-redux";
 
+
+// ======================================================
+// Import Redux Action
+// ======================================================
+
 import {
-    setMessages
+    addMessageIfNotExists
 } from "../redux/messageSlice";
 
 
@@ -16,6 +30,10 @@ import {
 
 const useGetRealTimeMessage = () => {
 
+    // ==================================================
+    // SOCKET
+    // ==================================================
+
     const {
         socket
     } = useSelector(
@@ -23,19 +41,34 @@ const useGetRealTimeMessage = () => {
     );
 
 
+    // ==================================================
+    // SELECTED USER
+    // ==================================================
+
     const {
-        messages
+        selectedUser
     } = useSelector(
-        store => store.message
+        store => store.user
     );
 
+
+    // ==================================================
+    // REDUX DISPATCH
+    // ==================================================
 
     const dispatch = useDispatch();
 
 
+    // ==================================================
+    // SOCKET LISTENER
+    // ==================================================
+
     useEffect(() => {
 
+        // ------------------------------------------------
         // Socket available nahi hai
+        // ------------------------------------------------
+
         if (!socket) {
 
             return;
@@ -44,20 +77,62 @@ const useGetRealTimeMessage = () => {
 
 
         // ==================================================
-        // NEW MESSAGE
+        // NEW MESSAGE HANDLER
         // ==================================================
 
         const handleNewMessage = (newMessage) => {
 
+            // ------------------------------------------------
+            // Selected user nahi hai
+            // ------------------------------------------------
+
+            if (!selectedUser?._id) {
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // CHECK CURRENT CONVERSATION
+            // ==================================================
+
+            // Receiver ke selected chat mein
+            // message senderId ke through identify hoga.
+
+            const isCurrentConversation =
+
+                String(newMessage.senderId) ===
+                String(selectedUser._id);
+
+
+            // ------------------------------------------------
+            // Agar message current chat ka nahi hai
+            // ------------------------------------------------
+
+            if (!isCurrentConversation) {
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // ADD MESSAGE TO REDUX
+            // ==================================================
+
+            // Redux reducer:
+            //
+            // 1. Message ko current chat mein add karega.
+            //
+            // 2. Message _id check karega.
+            //
+            // 3. Duplicate message ko prevent karega.
+
             dispatch(
 
-                setMessages(
-
-                    [
-                        ...(messages || []),
-                        newMessage
-                    ]
-
+                addMessageIfNotExists(
+                    newMessage
                 )
 
             );
@@ -65,7 +140,9 @@ const useGetRealTimeMessage = () => {
         };
 
 
-        // Listen for new message
+        // ==================================================
+        // REGISTER SOCKET LISTENER
+        // ==================================================
 
         socket.on(
             "newMessage",
@@ -74,7 +151,7 @@ const useGetRealTimeMessage = () => {
 
 
         // ==================================================
-        // CLEANUP
+        // CLEANUP SOCKET LISTENER
         // ==================================================
 
         return () => {
@@ -89,11 +166,15 @@ const useGetRealTimeMessage = () => {
 
     }, [
         socket,
-        messages,
+        selectedUser?._id,
         dispatch
     ]);
 
 };
 
+
+// ======================================================
+// EXPORT
+// ======================================================
 
 export default useGetRealTimeMessage;
