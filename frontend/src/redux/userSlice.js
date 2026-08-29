@@ -1,4 +1,4 @@
-// ======================================================
+﻿// ======================================================
 // Import createSlice from Redux Toolkit
 // ======================================================
 
@@ -59,6 +59,8 @@ const userSlice = createSlice({
         // Stores IDs of users who are
         // currently online.
         onlineUsers: null,
+
+        unreadMessages: {},
 
     },
 
@@ -131,6 +133,28 @@ const userSlice = createSlice({
 
             state.onlineUsers = action.payload;
 
+        },
+
+        incrementUnreadCount: (state, action) => {
+
+            const userId = action.payload;
+
+            state.unreadMessages[userId] =
+                (state.unreadMessages[userId] || 0) + 1;
+
+        },
+
+
+        clearUnreadCount: (state, action) => {
+
+            const userId = action.payload;
+
+            if (!state.unreadMessages) {
+                state.unreadMessages = {};
+            }
+
+            delete state.unreadMessages[userId];
+
         }
 
     }
@@ -161,7 +185,10 @@ export const {
 
     setSelectedUser,
 
-    setOnlineUsers
+    setOnlineUsers,
+    incrementUnreadCount,
+
+    clearUnreadCount
 
 } = userSlice.actions;
 
@@ -173,3 +200,10 @@ export const {
 // Export reducer so it can be added
 // to configureStore().
 export default userSlice.reducer;
+
+
+
+
+
+
+

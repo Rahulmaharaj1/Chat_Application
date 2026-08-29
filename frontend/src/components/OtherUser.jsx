@@ -1,13 +1,19 @@
-import React from 'react'
+﻿import React from 'react'
 import { useDispatch,useSelector } from "react-redux";
-import { setSelectedUser } from '../redux/userSlice';
+import { setSelectedUser, clearUnreadCount } from '../redux/userSlice';
 
 const OtherUser = ({ user }) => {
     const dispatch = useDispatch();
-    const {selectedUser, onlineUsers} = useSelector(store=>store.user);
+    const {selectedUser, onlineUsers, unreadMessages} = useSelector(store=>store.user);
     const isOnline = onlineUsers?.includes(user._id);
     const selectedUserHandler = (user) => {
         dispatch(setSelectedUser(user));
+
+        dispatch(
+            clearUnreadCount(
+                String(user._id)
+            )
+        );
     }
     return (
         <>
@@ -20,6 +26,12 @@ const OtherUser = ({ user }) => {
                 <div className='flex flex-col flex-1'>
                     <div className='flex justify-between gap-2 '>
                         <p>{user?.fullName}</p>
+
+{unreadMessages?.[user?._id] > 0 && (
+    <span className='bg-green-500 text-white text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center'>
+        {unreadMessages[user._id]}
+    </span>
+)}
                     </div>
                 </div>
             </div>
@@ -29,3 +41,6 @@ const OtherUser = ({ user }) => {
 }
 
 export default OtherUser
+
+
+

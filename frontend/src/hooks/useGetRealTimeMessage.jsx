@@ -1,23 +1,13 @@
-// ======================================================
-// Import React Hook
-// ======================================================
-
-import { useEffect } from "react";
-
-
-// ======================================================
-// Import Redux
-// ======================================================
+﻿import { useEffect } from "react";
 
 import {
     useSelector,
     useDispatch
 } from "react-redux";
 
-
-// ======================================================
-// Import Redux Action
-// ======================================================
+import {
+    incrementUnreadCount
+} from "../redux/userSlice";
 
 import {
     addMessageIfNotExists
@@ -30,20 +20,11 @@ import {
 
 const useGetRealTimeMessage = () => {
 
-    // ==================================================
-    // SOCKET
-    // ==================================================
-
     const {
         socket
     } = useSelector(
         store => store.socket
     );
-
-
-    // ==================================================
-    // SELECTED USER
-    // ==================================================
 
     const {
         selectedUser
@@ -51,28 +32,13 @@ const useGetRealTimeMessage = () => {
         store => store.user
     );
 
-
-    // ==================================================
-    // REDUX DISPATCH
-    // ==================================================
-
     const dispatch = useDispatch();
 
 
-    // ==================================================
-    // SOCKET LISTENER
-    // ==================================================
-
     useEffect(() => {
 
-        // ------------------------------------------------
-        // Socket available nahi hai
-        // ------------------------------------------------
-
         if (!socket) {
-
             return;
-
         }
 
 
@@ -82,66 +48,51 @@ const useGetRealTimeMessage = () => {
 
         const handleNewMessage = (newMessage) => {
 
-            // ------------------------------------------------
-            // Selected user nahi hai
-            // ------------------------------------------------
-
-            if (!selectedUser?._id) {
-
-                return;
-
-            }
-
-
-            // ==================================================
-            // CHECK CURRENT CONVERSATION
-            // ==================================================
-
-            // Receiver ke selected chat mein
-            // message senderId ke through identify hoga.
-
+            // Current chat mein message hai ya nahi
             const isCurrentConversation =
-
+                selectedUser?._id &&
                 String(newMessage.senderId) ===
                 String(selectedUser._id);
 
 
-            // ------------------------------------------------
-            // Agar message current chat ka nahi hai
-            // ------------------------------------------------
+            // ==================================================
+            // CURRENT CHAT
+            // ==================================================
 
-            if (!isCurrentConversation) {
+            if (isCurrentConversation) {
+
+                dispatch(
+                    addMessageIfNotExists(
+                        newMessage
+                    )
+                );
 
                 return;
-
             }
 
 
             // ==================================================
-            // ADD MESSAGE TO REDUX
+            // OTHER CHAT
             // ==================================================
 
-            // Redux reducer:
-            //
-            // 1. Message ko current chat mein add karega.
-            //
-            // 2. Message _id check karega.
-            //
-            // 3. Duplicate message ko prevent karega.
+            // Agar message kisi doosre user se aaya hai
+            // to unread notification count +1 karo.
 
-            dispatch(
+            if (newMessage?.senderId) {
 
-                addMessageIfNotExists(
-                    newMessage
-                )
+                dispatch(
+                    incrementUnreadCount(
+                        String(newMessage.senderId)
+                    )
+                );
 
-            );
+            }
 
         };
 
 
         // ==================================================
-        // REGISTER SOCKET LISTENER
+        // SOCKET LISTENER
         // ==================================================
 
         socket.on(
@@ -151,7 +102,7 @@ const useGetRealTimeMessage = () => {
 
 
         // ==================================================
-        // CLEANUP SOCKET LISTENER
+        // CLEANUP
         // ==================================================
 
         return () => {
@@ -172,9 +123,5 @@ const useGetRealTimeMessage = () => {
 
 };
 
-
-// ======================================================
-// EXPORT
-// ======================================================
 
 export default useGetRealTimeMessage;
